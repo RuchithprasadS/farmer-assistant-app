@@ -12,7 +12,7 @@ function App() {
       }
 
     const response = await fetch(
-      `http://localhost:8080/crop?location=${location}`
+      `https://former-assistant-service.onrender.com/crop?location=${location}`
     );
 
     const data = await response.json();
