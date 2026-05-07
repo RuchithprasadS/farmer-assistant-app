@@ -20,35 +20,88 @@ function App() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1>🌾 Farmer Assistant</h1>
-
-        <input
-          type="text"
-          placeholder="Enter location (e.g. Karnataka)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          style={styles.input}
-        />
-
-        <button onClick={getCropSuggestion} style={styles.button}>
-          Get Suggestion
-        </button>
-
-        {typeof result === "string" ? (
-  <div style={styles.result}>{result}</div>
-) : (
-  result && (
-    <div style={styles.result}>
-      <p><strong>🌾 Crop:</strong> {result.crop}</p>
-      <p><strong>📅 Season:</strong> {result.season}</p>
-      <p><strong>💧 Water Needs:</strong> {result.water}</p>
-      <p><strong>🌡️ Temperature:</strong> {result.temperature}</p>
-    </div>
-  )
-)}
+    <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-300">
+  
+      {/* Header */}
+      <header className="bg-green-700 text-white shadow-lg p-5">
+        <h1 className="text-4xl font-bold text-center">
+          🌾 Agri Helper AI
+        </h1>
+  
+        <p className="text-center mt-2 text-green-100">
+          Smart Crop Recommendation for Farmers
+        </p>
+      </header>
+  
+      {/* Main Content */}
+      <div className="flex justify-center items-center px-4 py-16">
+  
+        <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-10">
+  
+          <h2 className="text-3xl font-bold text-center text-green-700 mb-8">
+            Get Crop Suggestions
+          </h2>
+  
+          <input
+            type="text"
+            placeholder="Enter state or city"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full border border-gray-300 rounded-xl p-4 text-lg focus:outline-none focus:ring-4 focus:ring-green-300"
+          />
+  
+          <button
+            onClick={getCropSuggestion}
+            className="w-full bg-green-600 hover:bg-green-700 transition text-white text-lg font-semibold py-4 rounded-xl mt-5"
+          >
+            Get Suggestion
+          </button>
+  
+          {/* Result */}
+          <div className="mt-8">
+  
+            {result === "loading" ? (
+              <p className="text-center text-gray-600 text-lg">
+                ⏳ Loading...
+              </p>
+            ) : typeof result === "string" ? (
+              <p className="text-center text-red-500 font-semibold">
+                {result}
+              </p>
+            ) : (
+              result && (
+                <div className="bg-green-50 rounded-2xl p-6 shadow-inner space-y-4">
+  
+                  <h3 className="text-2xl font-bold text-green-700 text-center">
+                    🌱 Recommendation
+                  </h3>
+  
+                  <p className="text-lg">
+                    <strong>🌾 Crop:</strong> {result.crop}
+                  </p>
+  
+                  <p className="text-lg">
+                    <strong>📅 Season:</strong> {result.season}
+                  </p>
+  
+                  <p className="text-lg">
+                    <strong>💧 Water Needs:</strong> {result.water}
+                  </p>
+  
+                  <p className="text-lg">
+                    <strong>🌡 Temperature:</strong> {result.temperature}
+                  </p>
+  
+                </div>
+              )
+            )}
+  
+          </div>
+  
+        </div>
+  
       </div>
+  
     </div>
   );
 }
