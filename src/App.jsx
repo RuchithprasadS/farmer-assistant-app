@@ -5,144 +5,134 @@ function App() {
   const [result, setResult] = useState("");
 
   const getCropSuggestion = async () => {
-    setResult("Loading..."); 
     if (!location) {
-        setResult("Please enter a location ❗");
-        return;
+      setResult("Please enter a location ❗");
+      return;
+    }
+
+    try {
+      setResult("loading");
+
+      const response = await fetch(
+        `https://former-assistant-service.onrender.com/crop?location=${location}`
+      );
+
+      const data = await response.json();
+
+      if (data.error) {
+        setResult(data.error);
+      } else {
+        setResult(data);
       }
-
-    const response = await fetch(
-      `https://former-assistant-service.onrender.com/crop?location=${location}`
-    );
-
-    const data = await response.json();
-    setResult(data);
+    } catch (error) {
+      setResult("Something went wrong ❌");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-300">
-  
-      {/* Header */}
-      <header className="bg-green-700 text-white shadow-lg p-5">
-        <h1 className="text-4xl font-bold text-center">
-          🌾 Agri Helper AI
+    <div className="min-h-screen bg-gradient-to-br from-green-950 via-green-800 to-green-600 flex items-center justify-center px-4">
+
+      <div className="w-full max-w-xl backdrop-blur-lg bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 text-white">
+
+        {/* Title */}
+        <h1 className="text-4xl font-bold text-center mb-2">
+          🌾 Agri AI Assistant
         </h1>
-  
-        <p className="text-center mt-2 text-green-100">
-          Smart Crop Recommendation for Farmers
+
+        <p className="text-center text-green-100 mb-8">
+          AI-powered smart farming assistant for better yield 🌿
         </p>
-      </header>
-  
-      {/* Main Content */}
-      <div className="flex justify-center items-center px-4 py-16">
-  
-        <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-10">
-  
-          <h2 className="text-3xl font-bold text-center text-green-700 mb-8">
-            Get Crop Suggestions
-          </h2>
-  
-          <input
-            type="text"
-            placeholder="Enter state or city"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl p-4 text-lg focus:outline-none focus:ring-4 focus:ring-green-300"
-          />
-  
-          <button
-            onClick={getCropSuggestion}
-            className="w-full bg-green-600 hover:bg-green-700 transition text-white text-lg font-semibold py-4 rounded-xl mt-5"
-          >
-            Get Suggestion
-          </button>
-  
-          {/* Result */}
-          <div className="mt-8">
-  
-            {result === "loading" ? (
-              <p className="text-center text-gray-600 text-lg">
-                ⏳ Loading...
-              </p>
-            ) : typeof result === "string" ? (
-              <p className="text-center text-red-500 font-semibold">
-                {result}
-              </p>
-            ) : (
-              result && (
-                <div className="bg-green-50 rounded-2xl p-6 shadow-inner space-y-4">
-  
-                  <h3 className="text-2xl font-bold text-green-700 text-center">
-                    🌱 Recommendation
-                  </h3>
-  
-                  <p className="text-lg">
-                    <strong>🌾 Crop:</strong> {result.crop}
-                  </p>
-  
-                  <p className="text-lg">
-                    <strong>📅 Season:</strong> {result.season}
-                  </p>
-  
-                  <p className="text-lg">
-                    <strong>💧 Water Needs:</strong> {result.water}
-                  </p>
-  
-                  <p className="text-lg">
-                    <strong>🌡 Temperature:</strong> {result.temperature}
-                  </p>
-  
+
+        {/* Input */}
+        <input
+          type="text"
+          placeholder="Enter city (e.g., Bangalore)"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="w-full p-4 rounded-xl bg-white/20 border border-white/30 placeholder-white text-white focus:outline-none focus:ring-2 focus:ring-green-300 focus:scale-105 transition"
+        />
+
+        {/* Button */}
+        <button
+          onClick={getCropSuggestion}
+          className="w-full mt-5 py-4 rounded-xl bg-white text-green-800 font-semibold hover:bg-green-100 transition transform hover:scale-105 active:scale-95"
+        >
+          🚀 Get AI Suggestion
+        </button>
+
+        {/* Result */}
+        <div className="mt-8">
+
+          {result === "loading" ? (
+            <p className="text-center animate-pulse text-lg">
+              ⏳ AI is analyzing weather...
+            </p>
+
+          ) : typeof result === "string" ? (
+            <p className="text-center text-red-300 font-semibold">
+              {result}
+            </p>
+
+          ) : (
+            result && (
+              <div className="mt-6 p-6 rounded-2xl bg-white/20 border border-white/30 space-y-4">
+
+                <h2 className="text-2xl font-bold text-center mb-4">
+                  🌱 AI Recommendation
+                </h2>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+
+                  <div>
+                    🌾 <strong>Crops:</strong><br />
+                    {result.crops?.join(", ")}
+                  </div>
+
+                  <div>
+                    📅 <strong>Season:</strong><br />
+                    {result.season}
+                  </div>
+
+                  <div>
+                    🌡 <strong>Temp:</strong><br />
+                    {result.temperature}
+                  </div>
+
+                  <div>
+                    💧 <strong>Humidity:</strong><br />
+                    {result.humidity}
+                  </div>
+
+                  <div>
+                    ☁ <strong>Weather:</strong><br />
+                    {result.condition}
+                  </div>
+
+                  <div>
+                    🚿 <strong>Water:</strong><br />
+                    {result.water}
+                  </div>
+
                 </div>
-              )
-            )}
-  
-          </div>
-  
+
+                <div className="mt-4 p-3 bg-white/10 rounded-xl">
+                  📊 <strong>Advice:</strong> {result.advice}
+                </div>
+
+                <div className="text-center text-sm mt-2 opacity-80">
+                  🎯 Confidence: {result.confidence}
+                </div>
+
+              </div>
+            )
+          )}
+
         </div>
-  
+
       </div>
-  
+
     </div>
   );
 }
-
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f0f4f8",
-  },
-  card: {
-    padding: "30px",
-    borderRadius: "10px",
-    background: "white",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
-    textAlign: "center",
-    width: "300px",
-  },
-  input: {
-    padding: "10px",
-    width: "100%",
-    marginBottom: "15px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px",
-    width: "100%",
-    background: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  result: {
-    marginTop: "20px",
-    fontWeight: "bold",
-    color: "#2e7d32",
-  },
-};
 
 export default App;
