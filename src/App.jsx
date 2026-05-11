@@ -1,234 +1,186 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 function App() {
   const [location, setLocation] = useState("");
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 🌾 Fetch Crop Suggestion
   const getCropSuggestion = async () => {
-    if (!location) {
-      setResult("Please enter a location ❗");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setResult("");
-
-      const response = await fetch(
-        `https://former-assistant-service.onrender.com/crop?location=${location}`
-      );
-
-      const data = await response.json();
-
-      if (data.error) {
-        setResult(data.error);
-      } else {
-        setResult(data);
-      }
-    } catch (error) {
-      setResult("Something went wrong ❌");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 📍 GPS Auto Location
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setResult("Geolocation not supported ❌");
-      return;
-    }
+    if (!location) return;
 
     setLoading(true);
+    setResult(null);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        try {
-          // Reverse geocode (free API)
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await res.json();
-
-          const city =
-            data.address.city ||
-            data.address.town ||
-            data.address.village;
-
-          setLocation(city || "");
-          setResult(`📍 Auto-detected: ${city}`);
-
-        } catch {
-          setResult("Unable to fetch location ❌");
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
-        setResult("Location permission denied ❌");
-        setLoading(false);
-      }
+    const res = await fetch(
+      `https://former-assistant-service.onrender.com/crop?location=${location}`
     );
+    const data = await res.json();
+
+    setTimeout(() => {
+      setResult(data);
+      setLoading(false);
+    }, 500);
   };
 
-  // 🌦 Weather Icon Logic
-  const getWeatherIcon = (condition) => {
-    if (!condition) return "🌤";
-    const c = condition.toLowerCase();
-    if (c.includes("rain")) return "🌧";
-    if (c.includes("cloud")) return "☁";
-    if (c.includes("clear")) return "☀";
-    return "🌤";
+  const getCurrentLocation = () => {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      const data = await res.json();
+
+      const city =
+        data.address.city ||
+        data.address.town ||
+        data.address.village;
+
+      setLocation(city);
+    });
   };
 
-  // 🎯 Confidence Mapping
-  const confidenceMap = {
-    High: "90%",
-    Medium: "70%",
-    Low: "50%",
-  };
+  const chartData =
+    result && typeof result === "object"
+      ? [
+          { name: "Temp", value: parseFloat(result.temperature) },
+          { name: "Humidity", value: parseFloat(result.humidity) },
+        ]
+      : [];
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center relative"
-      style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef')",
-      }}
-    >
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-100">
 
-      <div className="relative w-full max-w-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 text-white backdrop-blur-xl">
+      {/* 🌿 Floating Background Blobs */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+
+      {/* Main */}
+      <div className="relative max-w-4xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <h1 className="text-4xl font-bold text-center mb-2">
-          🌾 Agri AI Assistant
-        </h1>
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-bold text-center text-green-700"
+        >
+          🌾 Agri AI
+        </motion.h1>
 
-        <p className="text-center text-green-200 mb-6">
-          Smart farming powered by AI + Real-time Weather
+        <p className="text-center text-gray-500 mt-2 mb-8">
+          Intelligent Farming Made Beautiful
         </p>
 
         {/* Input */}
-        <input
-          type="text"
-          placeholder="Enter city (e.g., Bangalore)"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="w-full p-4 rounded-xl bg-white/20 border border-white/30 placeholder-white text-white focus:outline-none focus:ring-2 focus:ring-green-300"
-        />
+        <motion.div
+          whileHover={{ scale: 1.01 }}
+          className="bg-white p-6 rounded-2xl shadow-lg"
+        >
+          <div className="flex gap-3 flex-wrap">
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter your location..."
+              className="flex-1 p-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
+            />
 
-        {/* Buttons */}
-        <div className="flex gap-3 mt-4">
-          <button
-            onClick={getCropSuggestion}
-            disabled={loading}
-            className="w-full py-4 rounded-xl bg-green-400 text-green-900 font-semibold hover:bg-green-300 transition transform hover:scale-105 disabled:opacity-50"
+            <button
+              onClick={getCurrentLocation}
+              className="px-4 py-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition active:scale-90"
+            >
+              📍
+            </button>
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={getCropSuggestion}
+              className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700"
+            >
+              {loading ? "Analyzing..." : "Analyze"}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="mt-6 text-center animate-pulse text-green-700">
+            🌱 Growing insights...
+          </div>
+        )}
+
+        {/* Results */}
+        {result && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 space-y-6"
           >
-            🤖 Analyze
-          </button>
 
-          <button
-            onClick={getCurrentLocation}
-            disabled={loading}
-            className="w-full py-4 rounded-xl bg-blue-400 text-blue-900 font-semibold hover:bg-blue-300 transition transform hover:scale-105 disabled:opacity-50"
-          >
-            📍 Auto Detect
-          </button>
-        </div>
+            {/* Crops */}
+            <div className="bg-white p-6 rounded-2xl shadow-md">
+              <h2 className="font-semibold mb-4">🌱 Recommended Crops</h2>
 
-        {/* Result */}
-        <div className="mt-8">
-          {loading ? (
-            <p className="text-center animate-pulse text-lg">
-              ⏳ AI is analyzing...
-            </p>
-          ) : typeof result === "string" ? (
-            <p className="text-center text-red-300 font-semibold">
-              {result}
-            </p>
-          ) : (
-            result && (
-              <div className="mt-6 p-6 rounded-2xl bg-white/20 border border-white/30 space-y-4">
-
-                <p className="text-center text-sm text-green-200">
-                  📍 {location}
-                </p>
-
-                <h2 className="text-2xl font-bold text-center">
-                  🌱 Recommended Crops
-                </h2>
-
-                <p className="text-center text-lg font-semibold text-green-200">
-                  🌽 {result.crops?.join(" 🌾 ")}
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-
-                  <div>
-                    📅 <strong>Season:</strong><br />
-                    {result.season}
-                  </div>
-
-                  <div>
-                    🌡 <strong>Temp:</strong><br />
-                    {result.temperature}
-                  </div>
-
-                  <div>
-                    💧 <strong>Humidity:</strong><br />
-                    {result.humidity}
-                  </div>
-
-                  <div>
-                    {getWeatherIcon(result.condition)}{" "}
-                    <strong>Weather:</strong><br />
-                    {result.condition}
-                  </div>
-
-                  <div>
-                    🚿 <strong>Water:</strong><br />
-                    {result.water}
-                  </div>
-                </div>
-
-                <div className="mt-4 p-3 bg-white/10 rounded-xl">
-                  📊 <strong>Advice:</strong> {result.advice}
-                </div>
-
-                {/* Confidence */}
-                <div className="mt-3">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>🎯 Confidence</span>
-                    <span>
-                      {confidenceMap[result.confidence] ||
-                        result.confidence}
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-white/20 rounded-full h-2">
-                    <div
-                      className="bg-green-300 h-2 rounded-full"
-                      style={{
-                        width:
-                          confidenceMap[result.confidence] ||
-                          result.confidence ||
-                          "70%",
-                      }}
-                    />
-                  </div>
-                </div>
-
+              <div className="flex flex-wrap gap-3">
+                {result.crops?.map((crop, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ scale: 1.1 }}
+                    className="px-4 py-2 bg-green-100 text-green-700 rounded-full shadow-sm cursor-pointer"
+                  >
+                    {crop}
+                  </motion.div>
+                ))}
               </div>
-            )
-          )}
-        </div>
+            </div>
 
+            {/* Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                ["🌡 Temp", result.temperature],
+                ["💧 Humidity", result.humidity],
+                ["☁ Weather", result.condition],
+                ["📅 Season", result.season],
+              ].map(([label, value], i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -5 }}
+                  className="bg-white p-4 rounded-xl shadow-md text-center"
+                >
+                  <p className="text-sm text-gray-500">{label}</p>
+                  <p className="text-lg font-semibold">{value}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Chart */}
+            <div className="bg-white p-6 rounded-2xl shadow-md">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Advice */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-r from-green-400 to-green-600 text-white p-6 rounded-2xl shadow-lg"
+            >
+              💡 {result.advice}
+            </motion.div>
+
+          </motion.div>
+        )}
       </div>
     </div>
   );
